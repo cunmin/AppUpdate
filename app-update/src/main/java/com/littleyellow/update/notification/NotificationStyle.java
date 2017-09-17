@@ -51,9 +51,8 @@ public class NotificationStyle implements NotificationCustom {
     public void complete(Context context,NotificationCompat.Builder builder,PendingIntent installAppIntent){
         builder.setContentTitle(AppUpdateUtils.getAppName(context))
                 .setContentText("下载完成，请点击安装")
-                .setProgress(0, 0, false)
+                .setProgress(0, 0, false);
 //                        .setAutoCancel(true)
-                ;
     }
 
     /*========================================================================================================*/
