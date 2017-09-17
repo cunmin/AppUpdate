@@ -289,6 +289,8 @@ public class DownloadService extends Service {
                 //更新参数,注意flags要使用FLAG_UPDATE_CURRENT
                 Intent installAppIntent = AppUpdateUtils.getInstallAppIntent(DownloadService.this, file);
                 PendingIntent contentIntent = PendingIntent.getActivity(DownloadService.this, 0, installAppIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                mBuilder.setContentIntent(contentIntent)
+                        .setDefaults((Notification.DEFAULT_ALL));
                 mNotificationCustom.complete(DownloadService.this,mBuilder,contentIntent);
                 Notification notification = mBuilder.build();
                 notification.flags = Notification.FLAG_AUTO_CANCEL;

@@ -1,6 +1,5 @@
 package com.littleyellow.update.notification;
 
-import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.os.Parcel;
@@ -50,12 +49,11 @@ public class NotificationStyle implements NotificationCustom {
 
     @Override
     public void complete(Context context,NotificationCompat.Builder builder,PendingIntent installAppIntent){
-        builder.setContentIntent(installAppIntent)
-                .setContentTitle(AppUpdateUtils.getAppName(context))
+        builder.setContentTitle(AppUpdateUtils.getAppName(context))
                 .setContentText("下载完成，请点击安装")
                 .setProgress(0, 0, false)
 //                        .setAutoCancel(true)
-                .setDefaults((Notification.DEFAULT_ALL));
+                ;
     }
 
     /*========================================================================================================*/
