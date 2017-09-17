@@ -1,8 +1,8 @@
 package com.littleyellow.update_demo;
 
+import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
@@ -57,6 +57,22 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 });
+
+            }
+        });
+
+        TextView custom_notification_checkTv = (TextView) findViewById(R.id.custom_notification_check_tv);
+        custom_notification_checkTv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                UpdateAppManager
+                        .newBuilder()
+                        .mActivity(MainActivity.this)
+                        .mHttpManager(new AppUpdateHttpManager())
+                        .notificationCustom(new INotification())
+                        .mTargetPath(path)
+                        .build()
+                        .checkVersion(new CallbackUpdate());
             }
         });
     }
