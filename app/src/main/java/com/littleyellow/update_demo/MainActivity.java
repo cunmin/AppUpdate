@@ -12,7 +12,6 @@ import com.littleyellow.update.service.DownloadService;
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
-    int i;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +75,5 @@ public class MainActivity extends AppCompatActivity {
                         .checkVersion(new CallbackUpdate());
             }
         });
-
-
     }
 }

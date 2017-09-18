@@ -24,8 +24,6 @@ public class NotificationStyle implements NotificationCustom {
                     .setContentText("正在连接服务器")
                     .setSmallIcon(R.mipmap.lib_update_app_update_icon)
                     .setLargeIcon(AppUpdateUtils.drawableToBitmap(AppUpdateUtils.getAppIcon(context)))
-                    .setOngoing(true)
-                    .setAutoCancel(true)
                     .setWhen(System.currentTimeMillis());
         }
     }

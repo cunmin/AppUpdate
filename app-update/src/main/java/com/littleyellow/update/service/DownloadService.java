@@ -84,6 +84,8 @@ public class DownloadService extends Service {
         }
 
         mBuilder = new NotificationCompat.Builder(this);
+        mBuilder.setOngoing(true)
+                .setAutoCancel(true);
         mNotificationCustom.setUp(this,mBuilder);
         mNotificationManager.notify(NOTIFY_ID, mBuilder.build());
     }
