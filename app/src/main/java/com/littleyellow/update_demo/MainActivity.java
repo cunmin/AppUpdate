@@ -18,15 +18,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         TextView checkTv = (TextView) findViewById(R.id.check_tv);
-        final String path = Environment.getExternalStorageDirectory().getAbsolutePath();
+        final String path = Environment.getExternalStorageDirectory().getAbsolutePath()+"/UpdateApp";
         checkTv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 UpdateAppManager
                         .newBuilder()
-                        .mActivity(MainActivity.this)
-                        .mHttpManager(new AppUpdateHttpManager())
-                        .mTargetPath(path)
+                        .activity(MainActivity.this)
+                        .httpManager(new AppUpdateHttpManager())
+                        .targetPath(path)
                         .build()
                         .checkVersion(new CallbackUpdate());
             }
@@ -67,10 +67,10 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 UpdateAppManager
                         .newBuilder()
-                        .mActivity(MainActivity.this)
-                        .mHttpManager(new AppUpdateHttpManager())
+                        .activity(MainActivity.this)
+                        .httpManager(new AppUpdateHttpManager())
                         .notificationCustom(new INotification())
-                        .mTargetPath(path)
+                        .targetPath(path)
                         .build()
                         .checkVersion(new CallbackUpdate());
             }

@@ -21,31 +21,30 @@ public class UpdateAppManager {
     /**
      * 必需参数
      */
-    private Activity mActivity;
-    private HttpManager mHttpManager;
-
+    private Activity activity;
+    private HttpManager httpManager;
     private NotificationCustom notificationCustom;
 
 
-    private UpdateAppBean mUpdateApp;
-    private String mTargetPath;
+    private UpdateAppBean updateApp;
+    private String targetPath;
     private boolean isPost;
-    private boolean mHideDialog;
-    private boolean mShowIgnoreVersion;
-    private boolean mDismissNotificationProgress;
-    private boolean mOnlyWifi;
+    private boolean hideDialog;
+    private boolean showIgnoreVersion;
+    private boolean dismissNotificationProgress;
+    private boolean onlyWifi;
 
     private UpdateAppManager(Builder builder) {
-        mActivity = builder.mActivity;
-        mHttpManager = builder.mHttpManager;
+        activity = builder.activity;
+        httpManager = builder.httpManager;
         notificationCustom = builder.notificationCustom;
-        mUpdateApp = builder.mUpdateApp;
-        mTargetPath = builder.mTargetPath;
+        updateApp = builder.updateApp;
+        targetPath = builder.targetPath;
         isPost = builder.isPost;
-        mHideDialog = builder.mHideDialog;
-        mShowIgnoreVersion = builder.mShowIgnoreVersion;
-        mDismissNotificationProgress = builder.mDismissNotificationProgress;
-        mOnlyWifi = builder.mOnlyWifi;
+        hideDialog = builder.hideDialog;
+        showIgnoreVersion = builder.showIgnoreVersion;
+        dismissNotificationProgress = builder.dismissNotificationProgress;
+        onlyWifi = builder.onlyWifi;
     }
 
     public static Builder newBuilder() {
@@ -58,11 +57,11 @@ public class UpdateAppManager {
         }
         if (DownloadService.isRunning ) {
             callback.onAfter();
-            callback.toast(mActivity, "app正在更新");
+            callback.toast(activity, "app正在更新");
             return;
         }
 
-        mHttpManager.getVersion(new HttpManager.Callback<T>() {
+        httpManager.getVersion(new HttpManager.Callback<T>() {
             @Override
             public void onResponse(T result) {
                 callback.onAfter();
@@ -95,10 +94,10 @@ public class UpdateAppManager {
         if (updateApp == null) {
             throw new NullPointerException("updateApp 不能为空");
         }
-        updateApp.setTargetPath(mTargetPath);
-        updateApp.setHttpManager(mHttpManager);
+        updateApp.setTargetPath(targetPath);
+        updateApp.setHttpManager(httpManager);
         updateApp.setNotificationCustom(notificationCustom);
-        DownloadService.bindService(mActivity.getApplicationContext(), new ServiceConnection() {
+        DownloadService.bindService(activity.getApplicationContext(), new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 ((DownloadService.DownloadBinder) service).start(updateApp, downloadCallback);
@@ -120,14 +119,14 @@ public class UpdateAppManager {
      */
     private <T> void processData(T result, @NonNull UpdateCallback callback) {
         try {
-            UpdateAppBean mUpdateApp = callback.parseResult(result);
-            int currentVersionCode = AppUpdateUtils.getVersionCode(mActivity);
-            if (callback.isUpdate(mUpdateApp,currentVersionCode)) {
+            UpdateAppBean updateApp = callback.parseResult(result);
+            int currentVersionCode = AppUpdateUtils.getVersionCode(activity);
+            if (callback.isUpdate(updateApp,currentVersionCode)) {
                 //假如是静默下载，可能需要判断，
                 //是否wifi,
                 //是否已经下载，如果已经下载直接提示安装
                 //没有则进行下载，监听下载完成，弹出安装对话框
-                callback.hasNewApp(mUpdateApp, this);
+                callback.hasNewApp(updateApp, this);
             } else {
                 callback.noNewApp();
             }
@@ -139,27 +138,27 @@ public class UpdateAppManager {
 
 
     public static final class Builder {
-        private Activity mActivity;
-        private HttpManager mHttpManager;
+        private Activity activity;
+        private HttpManager httpManager;
         private NotificationCustom notificationCustom;
-        private UpdateAppBean mUpdateApp;
-        private String mTargetPath;
+        private UpdateAppBean updateApp;
+        private String targetPath;
         private boolean isPost;
-        private boolean mHideDialog;
-        private boolean mShowIgnoreVersion;
-        private boolean mDismissNotificationProgress;
-        private boolean mOnlyWifi;
+        private boolean hideDialog;
+        private boolean showIgnoreVersion;
+        private boolean dismissNotificationProgress;
+        private boolean onlyWifi;
 
         private Builder() {
         }
 
-        public Builder mActivity(Activity val) {
-            mActivity = val;
+        public Builder activity(Activity val) {
+            activity = val;
             return this;
         }
 
-        public Builder mHttpManager(HttpManager val) {
-            mHttpManager = val;
+        public Builder httpManager(HttpManager val) {
+            httpManager = val;
             return this;
         }
 
@@ -168,13 +167,13 @@ public class UpdateAppManager {
             return this;
         }
 
-        public Builder mUpdateApp(UpdateAppBean val) {
-            mUpdateApp = val;
+        public Builder updateApp(UpdateAppBean val) {
+            updateApp = val;
             return this;
         }
 
-        public Builder mTargetPath(String val) {
-            mTargetPath = val;
+        public Builder targetPath(String val) {
+            targetPath = val;
             return this;
         }
 
@@ -183,29 +182,29 @@ public class UpdateAppManager {
             return this;
         }
 
-        public Builder mHideDialog(boolean val) {
-            mHideDialog = val;
+        public Builder hideDialog(boolean val) {
+            hideDialog = val;
             return this;
         }
 
-        public Builder mShowIgnoreVersion(boolean val) {
-            mShowIgnoreVersion = val;
+        public Builder showIgnoreVersion(boolean val) {
+            showIgnoreVersion = val;
             return this;
         }
 
-        public Builder mDismissNotificationProgress(boolean val) {
-            mDismissNotificationProgress = val;
+        public Builder dismissNotificationProgress(boolean val) {
+            dismissNotificationProgress = val;
             return this;
         }
 
-        public Builder mOnlyWifi(boolean val) {
-            mOnlyWifi = val;
+        public Builder onlyWifi(boolean val) {
+            onlyWifi = val;
             return this;
         }
 
         public UpdateAppManager build() {
             //校验
-            if (mActivity == null || mHttpManager == null|| TextUtils.isEmpty(mTargetPath)) {
+            if (activity == null || httpManager == null|| TextUtils.isEmpty(targetPath)) {
                 throw new NullPointerException("必需参数不能为空");
             }
             if(notificationCustom == null){
@@ -216,7 +215,7 @@ public class UpdateAppManager {
     }
 
     public Activity getActivity() {
-        return mActivity;
+        return activity;
     }
 
     public static void addDownloadCallback(String tag,DownloadService.DownloadCallback callback) {
