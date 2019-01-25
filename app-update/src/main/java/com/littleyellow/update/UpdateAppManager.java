@@ -9,10 +9,16 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.littleyellow.update.bean.UpdateAppBean;
-import com.littleyellow.update.notification.NotificationCustom;
-import com.littleyellow.update.notification.NotificationStyle;
+import com.littleyellow.update.bean.Version;
+import com.littleyellow.update.callback.CheckCallback;
+import com.littleyellow.update.callback.DownloadCallback;
+import com.littleyellow.update.notification.INotification;
+import com.littleyellow.update.notification.DefaultNotification;
 import com.littleyellow.update.service.DownloadService;
 import com.littleyellow.update.utils.AppUpdateUtils;
+import com.littleyellow.update.utils.Md5Util;
+
+import java.io.File;
 
 /**
  * 版本更新管理器
@@ -22,8 +28,8 @@ public class UpdateAppManager {
      * 必需参数
      */
     private Activity activity;
-    private HttpManager httpManager;
-    private NotificationCustom notificationCustom;
+    private NetManager netManager;
+    private INotification notificationCustom;
 
 
     private UpdateAppBean updateApp;
@@ -36,7 +42,7 @@ public class UpdateAppManager {
 
     private UpdateAppManager(Builder builder) {
         activity = builder.activity;
-        httpManager = builder.httpManager;
+        netManager = builder.netManager;
         notificationCustom = builder.notificationCustom;
         updateApp = builder.updateApp;
         targetPath = builder.targetPath;
@@ -51,38 +57,72 @@ public class UpdateAppManager {
         return new Builder();
     }
 
-    public <T> void checkVersion(final UpdateCallback<T> callback) {
+    /**
+     * 检查版本，如已经在下载了，直接返回
+     * @param callback
+     */
+    public  void checkVersion(final CheckCallback callback){
+        checkVersion(callback,null);
+    }
+
+    /**
+     * 检查版本，如已经在下载了，通知栏有显示下载进度，并且第二个参数也可以监听下载进度
+     * @param callback
+     */
+    public  void checkVersion(final CheckCallback callback, DownloadCallback downloadCallback) {
         if (callback == null) {
             return;
         }
-        if (DownloadService.isRunning ) {
-            callback.onAfter();
+        if (DownloadService.isRunning) {
             callback.toast(activity, "app正在更新");
+            if(null!=downloadCallback){
+                addDownloadCallback("againListen",downloadCallback);
+                DownloadService.bindService(activity.getApplicationContext(), new ServiceConnection() {
+                    @Override
+                    public void onServiceConnected(ComponentName name, IBinder service) {
+                        ((DownloadService.DownloadBinder) service).refreshNotification();
+                    }
+
+                    @Override
+                    public void onServiceDisconnected(ComponentName name) {
+
+                    }
+                });
+            }
             return;
         }
-
-        httpManager.getVersion(new HttpManager.Callback<T>() {
+        callback.onBefore();
+        netManager.getVersion(new NetManager.Callback<Version>() {
             @Override
-            public void onResponse(T result) {
+            public void onResponse(Version result) {
                 callback.onAfter();
                 if (result != null) {
                     processData(result, callback);
+                }else{
+                    callback.noNewApp(UpdateAppManager.this);
                 }
             }
 
             @Override
             public void onError(String error) {
                 callback.onAfter();
-                callback.noNewApp();
+                callback.noNewApp(UpdateAppManager.this);
             }
         });
     }
 
     /**
+     * 不带通知的后台下载
+     */
+    public void silentDownload(@Nullable final Version version,DownloadCallback downloadCallback){
+        download(version,downloadCallback,true);
+    }
+
+    /**
      * 不带下载回调后台下载
      */
-    public void download(@Nullable final UpdateAppBean updateApp){
-        download(updateApp,null);
+    public void download(@Nullable final Version version){
+        download(version,null,false);
     }
 
     /**
@@ -90,17 +130,14 @@ public class UpdateAppManager {
      *
      * @param downloadCallback 后台下载回调
      */
-    public void download(@Nullable final UpdateAppBean updateApp, @Nullable final DownloadService.DownloadCallback downloadCallback) {
-        if (updateApp == null) {
+    public void download(@Nullable final Version version, @Nullable final DownloadCallback downloadCallback,final boolean isSilentDownload) {
+        if (version == null) {
             throw new NullPointerException("updateApp 不能为空");
         }
-        updateApp.setTargetPath(targetPath);
-        updateApp.setHttpManager(httpManager);
-        updateApp.setNotificationCustom(notificationCustom);
         DownloadService.bindService(activity.getApplicationContext(), new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
-                ((DownloadService.DownloadBinder) service).start(updateApp, downloadCallback);
+                ((DownloadService.DownloadBinder) service).start(UpdateAppManager.this,version,downloadCallback,isSilentDownload);
             }
 
             @Override
@@ -110,6 +147,9 @@ public class UpdateAppManager {
         });
     }
 
+    public void installApp(File apk){
+        AppUpdateUtils.installApp(activity, apk);
+    }
 
     /**
      * 解析
@@ -117,30 +157,22 @@ public class UpdateAppManager {
      * @param result
      * @param callback
      */
-    private <T> void processData(T result, @NonNull UpdateCallback callback) {
+    private void processData(Version result, @NonNull CheckCallback callback) {
         try {
-            UpdateAppBean updateApp = callback.parseResult(result);
             int currentVersionCode = AppUpdateUtils.getVersionCode(activity);
-            if (callback.isUpdate(updateApp,currentVersionCode)) {
-                //假如是静默下载，可能需要判断，
-                //是否wifi,
-                //是否已经下载，如果已经下载直接提示安装
-                //没有则进行下载，监听下载完成，弹出安装对话框
-                callback.hasNewApp(updateApp, this);
-            } else {
-                callback.noNewApp();
-            }
+            File apk = new File(targetPath,result.getVersionName()+".apk");
+            callback.updateLogic(this,result,currentVersionCode,apk);
         } catch (Exception ignored) {
             ignored.printStackTrace();
-            callback.noNewApp();
+            callback.noNewApp(this);
         }
     }
 
 
     public static final class Builder {
         private Activity activity;
-        private HttpManager httpManager;
-        private NotificationCustom notificationCustom;
+        private NetManager netManager;
+        private INotification notificationCustom;
         private UpdateAppBean updateApp;
         private String targetPath;
         private boolean isPost;
@@ -157,12 +189,12 @@ public class UpdateAppManager {
             return this;
         }
 
-        public Builder httpManager(HttpManager val) {
-            httpManager = val;
+        public Builder httpManager(NetManager val) {
+            netManager = val;
             return this;
         }
 
-        public Builder notificationCustom(NotificationCustom val) {
+        public Builder notificationCustom(INotification val) {
             notificationCustom = val;
             return this;
         }
@@ -204,11 +236,11 @@ public class UpdateAppManager {
 
         public UpdateAppManager build() {
             //校验
-            if (activity == null || httpManager == null|| TextUtils.isEmpty(targetPath)) {
+            if (activity == null || netManager == null|| TextUtils.isEmpty(targetPath)) {
                 throw new NullPointerException("必需参数不能为空");
             }
             if(notificationCustom == null){
-                notificationCustom = new NotificationStyle();
+                notificationCustom = new DefaultNotification();
             }
             return new UpdateAppManager(this);
         }
@@ -218,9 +250,34 @@ public class UpdateAppManager {
         return activity;
     }
 
-    public static void addDownloadCallback(String tag,DownloadService.DownloadCallback callback) {
+    public static void addDownloadCallback(String tag,DownloadCallback callback) {
         if(null!=callback){
+            callback.onStart();
             DownloadService.mDownloadCallbacks.put(tag,callback);
+        }
+    }
+
+    public INotification getNotificationCustom() {
+        return notificationCustom;
+    }
+
+    public NetManager getNetManager() {
+        return netManager;
+    }
+
+    public String getTargetPath() {
+        return targetPath;
+    }
+
+    public boolean isDownloaded(Version updateAppBean){
+        if(!TextUtils.isEmpty(updateAppBean.getMd5())){
+            File apk = new File(targetPath,updateAppBean.getVersionName()+".apk");
+            return !TextUtils.isEmpty(updateAppBean.getMd5())
+                    && apk.exists()
+                    && Md5Util.getFileMD5(apk).equalsIgnoreCase(updateAppBean.getMd5());
+        }else{
+            File apk = new File(targetPath,updateAppBean.getVersionName()+".apk");
+            return null!=apk&&apk.exists();
         }
     }
 }

@@ -2,8 +2,8 @@ package com.littleyellow.update.bean;
 
 import android.text.TextUtils;
 
-import com.littleyellow.update.HttpManager;
-import com.littleyellow.update.notification.NotificationCustom;
+import com.littleyellow.update.NetManager;
+import com.littleyellow.update.notification.INotification;
 
 import java.io.Serializable;
 
@@ -40,19 +40,19 @@ public class UpdateAppBean implements Serializable{
     /**********以下是内部使用的数据**********/
 
     //网络工具，内部使用
-    private HttpManager httpManager;
-    private NotificationCustom notificationCustom;
+    private NetManager netManager;
+    private INotification notificationCustom;
     private String targetPath;
     private boolean mHideDialog;
     private boolean mShowIgnoreVersion;
     private boolean mDismissNotificationProgress;
     private boolean mOnlyWifi;
 
-    public NotificationCustom getNotificationCustom() {
+    public INotification getNotificationCustom() {
         return notificationCustom;
     }
 
-    public void setNotificationCustom(NotificationCustom notificationCustom) {
+    public void setNotificationCustom(INotification notificationCustom) {
         this.notificationCustom = notificationCustom;
     }
 
@@ -69,12 +69,12 @@ public class UpdateAppBean implements Serializable{
         return !TextUtils.isEmpty(this.update) && "Yes".equals(this.update);
     }
 
-    public HttpManager getHttpManager() {
-        return httpManager;
+    public NetManager getNetManager() {
+        return netManager;
     }
 
-    public void setHttpManager(HttpManager httpManager) {
-        this.httpManager = httpManager;
+    public void setNetManager(NetManager netManager) {
+        this.netManager = netManager;
     }
 
     public String getTargetPath() {

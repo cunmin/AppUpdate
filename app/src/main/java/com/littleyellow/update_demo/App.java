@@ -2,6 +2,8 @@ package com.littleyellow.update_demo;
 
 import android.app.Application;
 
+import com.squareup.leakcanary.LeakCanary;
+
 import org.xutils.x;
 
 /**
@@ -14,5 +16,6 @@ public class App extends Application{
     public void onCreate() {
         super.onCreate();
         x.Ext.init(this);
+        LeakCanary.install(this);
     }
 }

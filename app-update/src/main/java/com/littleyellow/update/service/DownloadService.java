@@ -1,6 +1,7 @@
 package com.littleyellow.update.service;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -8,20 +9,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.widget.Toast;
 
-import com.littleyellow.update.HttpManager;
-import com.littleyellow.update.bean.UpdateAppBean;
-import com.littleyellow.update.notification.NotificationCustom;
+import com.littleyellow.update.NetManager;
+import com.littleyellow.update.UpdateAppManager;
+import com.littleyellow.update.bean.Version;
+import com.littleyellow.update.callback.DownloadCallback;
+import com.littleyellow.update.notification.INotification;
 import com.littleyellow.update.utils.AppUpdateUtils;
 
 import java.io.File;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.WeakHashMap;
 
 
@@ -30,29 +35,30 @@ import java.util.WeakHashMap;
  */
 public class DownloadService extends Service {
 
-    private static final int NOTIFY_ID = 0;
-    private static final String TAG = DownloadService.class.getSimpleName();
+    private final int NOTIFY_ID = 0;
+//    private static final String TAG = DownloadService.class.getSimpleName();
     public static boolean isRunning = false;
     private NotificationManager mNotificationManager;
     private DownloadBinder binder = new DownloadBinder();
     private NotificationCompat.Builder mBuilder;
-    private NotificationCustom mNotificationCustom;
+    private INotification mNotificationCustom;
     //WeakHashMap会在java虚拟机回收内存时,找到没被使用的key,将此条目移除,所以不需要手动remove()
     public static final Map<String, DownloadCallback> mDownloadCallbacks = new WeakHashMap<>();
-    //    /**
-//     * 开启服务方法
-//     *
-//     * @param context
-//     */
-//    public static void startService(Context context) {
-//        Intent intent = new Intent(context, DownloadService.class);
-//        context.startService(intent);
-//    }
-    private boolean mDismissNotificationProgress = false;
+    private boolean isSilentDownload = false;
+
+    /**
+     * 开启服务方法
+     *
+     * @param context
+     */
+    public static void refreshService(Context context) {
+        Intent intent = new Intent(context, DownloadService.class);
+        intent.setAction("refreshService");
+        context.startService(intent);
+    }
 
     public static void bindService(Context context, ServiceConnection connection) {
         Intent intent = new Intent(context, DownloadService.class);
-        context.startService(intent);
         context.bindService(intent, connection, Context.BIND_AUTO_CREATE);
         isRunning = true;
     }
@@ -79,11 +85,19 @@ public class DownloadService extends Service {
      * 创建通知
      */
     private void setUpNotification() {
-        if (mDismissNotificationProgress) {
+        if (isSilentDownload) {
             return;
         }
-
-        mBuilder = new NotificationCompat.Builder(this);
+        String channelId = "app_update";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelId, "应用更新", NotificationManager.IMPORTANCE_DEFAULT);
+            channel.enableLights(false); //是否在桌面icon右上角展示小红点
+            channel.setShowBadge(false); //是否在久按桌面图标时显示此渠道的通知
+            channel.enableVibration(false);
+            channel.setSound(null, null);
+            mNotificationManager.createNotificationChannel(channel);
+        }
+        mBuilder = new NotificationCompat.Builder(this,channelId);
         mBuilder.setOngoing(true)
                 .setAutoCancel(true);
         mNotificationCustom.setUp(this,mBuilder);
@@ -93,11 +107,8 @@ public class DownloadService extends Service {
     /**
      * 下载模块
      */
-    private void startDownload(UpdateAppBean updateApp, final DownloadCallback callback) {
-
-        mDismissNotificationProgress = updateApp.isDismissNotificationProgress();
-
-        String apkUrl = updateApp.getApkFileUrl();
+    private void startDownload(UpdateAppManager updateAppManager,Version updateApp, final DownloadCallback callback) {
+        String apkUrl = updateApp.getUrl();
         if (TextUtils.isEmpty(apkUrl)) {
             String contentText = "新版本下载路径错误";
             stop(contentText);
@@ -105,14 +116,14 @@ public class DownloadService extends Service {
         }
         String appName = AppUpdateUtils.getApkName(updateApp);
 
-        File appDir = new File(updateApp.getTargetPath());
+        File appDir = new File(updateAppManager.getTargetPath());
         if (!appDir.exists()) {
             appDir.mkdirs();
         }
 
-        String target = appDir + File.separator + updateApp.getNewVersion();
+        String target = appDir + File.separator;
 
-        updateApp.getHttpManager().download(apkUrl, target, appName, new FileDownloadCallBack(callback));
+        updateAppManager.getNetManager().download(apkUrl, target, appName, new FileDownloadCallBack(callback));
     }
 
     private void stop(String contentText) {
@@ -128,38 +139,7 @@ public class DownloadService extends Service {
     private void close() {
         stopSelf();
         isRunning = false;
-    }
-
-    /**
-     * 进度条回调接口
-     */
-    public interface DownloadCallback {
-        /**
-         * 开始
-         */
-        void onStart();
-
-        /**
-         * 进度
-         * @param percent  百分比
-         * @param progress  进度 0.00 -1.00 ，总大小
-         * @param totalSize 总大小 单位B
-         */
-        void onProgress(float percent,long progress, long totalSize);
-
-        /**
-         * 下载完了
-         * @param file 下载的app
-         * @return true ：下载完自动跳到安装界面，false：则不进行安装
-         */
-        boolean onFinish(File file);
-
-        /**
-         * 下载异常
-         *
-         * @param msg 异常信息
-         */
-        void onError(String msg);
+        isSilentDownload = false;
     }
 
     /**
@@ -174,22 +154,27 @@ public class DownloadService extends Service {
          * @param updateApp 新app信息
          * @param callback  下载回调
          */
-        public void start(UpdateAppBean updateApp, DownloadCallback callback) {
-            mNotificationCustom = updateApp.getNotificationCustom();
+        public void start(UpdateAppManager updateAppManager, Version updateApp, DownloadCallback callback, boolean isSilentDownload) {
+            DownloadService.this.isSilentDownload = isSilentDownload;
+            mNotificationCustom = updateAppManager.getNotificationCustom();
             //下载
-            startDownload(updateApp, callback);
+            startDownload(updateAppManager,updateApp, callback);
         }
 
-
+        public void refreshNotification(){
+            isSilentDownload = false;
+            setUpNotification();
+        }
     }
 
-    class FileDownloadCallBack implements HttpManager.FileCallback {
+    class FileDownloadCallBack implements NetManager.FileCallback {
         private final DownloadCallback mCallBack;
-        int oldRate = 0;
+        float oldPercent = 0;
+        Random random;
 
         public FileDownloadCallBack(@Nullable DownloadCallback callback) {
-            super();
             this.mCallBack = callback;
+            random = new Random();
         }
 
         @Override
@@ -211,11 +196,10 @@ public class DownloadService extends Service {
 
         @Override
         public void onProgress(long progress, long total) {
-            //做一下判断，防止自回调过于频繁，造成更新通知栏进度过于频繁，而出现卡顿的问题。
             try {
-                int rate = Math.round(progress * 100);
-                if (oldRate != rate) {
-                    float percent = progress* 100.0f/total;
+                //做一下判断，防止自回调过于频繁，造成更新通知栏进度过于频繁，而出现卡顿的问题。
+                float percent = progress* 100.0f/total;
+                if (oldPercent+4+random.nextFloat() < percent) {
                     if (mCallBack != null&&total>0) {
                         mCallBack.onProgress(percent,progress, total);
                     }
@@ -235,7 +219,7 @@ public class DownloadService extends Service {
                         }
                     }
                     //重新赋值
-                    oldRate = rate;
+                    oldPercent = percent;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -267,29 +251,36 @@ public class DownloadService extends Service {
 
         @Override
         public void onResponse(File file) {
+            File dest = new File(file.getParent(),file.getName().replace("_temp",""));
+            file.renameTo(dest);
             Iterator j = mDownloadCallbacks.entrySet().iterator();
             while (j.hasNext()) {
                 Map.Entry en = (Map.Entry) j.next();
                 DownloadCallback callback = (DownloadCallback) en.getValue();
                 if (callback != null) {
-                    callback.onFinish(file);
+                    callback.onFinish(dest);
                 }
             }
             if (mCallBack != null) {
-                if (!mCallBack.onFinish(file)) {
+                if (!mCallBack.onFinish(dest)) {
                     close();
                     return;
                 }
             }
 
+            if(isSilentDownload){
+                close();
+                return;
+            }
+
             if (AppUpdateUtils.isAppOnForeground(DownloadService.this) || mBuilder == null) {
                 //App前台运行
                 mNotificationManager.cancel(NOTIFY_ID);
-                AppUpdateUtils.installApp(DownloadService.this, file);
+                AppUpdateUtils.installApp(DownloadService.this, dest);
             } else {
                 //App后台运行
                 //更新参数,注意flags要使用FLAG_UPDATE_CURRENT
-                Intent installAppIntent = AppUpdateUtils.getInstallAppIntent(DownloadService.this, file);
+                Intent installAppIntent = AppUpdateUtils.getInstallAppIntent(DownloadService.this, dest);
                 PendingIntent contentIntent = PendingIntent.getActivity(DownloadService.this, 0, installAppIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 mBuilder.setContentIntent(contentIntent)
                         .setDefaults((Notification.DEFAULT_ALL));
@@ -302,6 +293,4 @@ public class DownloadService extends Service {
             close();
         }
     }
-
-
 }

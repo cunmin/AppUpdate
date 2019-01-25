@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.littleyellow.update.UpdateAppManager;
-import com.littleyellow.update.service.DownloadService;
+import com.littleyellow.update.callback.DownloadCallback;
 
 import java.io.File;
 
@@ -25,10 +25,10 @@ public class MainActivity extends AppCompatActivity {
                 UpdateAppManager
                         .newBuilder()
                         .activity(MainActivity.this)
-                        .httpManager(new AppUpdateHttpManager())
+                        .httpManager(new AppUpdateNetManager())
                         .targetPath(path)
                         .build()
-                        .checkVersion(new CallbackUpdate());
+                        .checkVersion(new UpdateCallback());
             }
         });
 
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         addCallbackTv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UpdateAppManager.addDownloadCallback("addTest",new DownloadService.DownloadCallback() {
+                UpdateAppManager.addDownloadCallback("addTest",new DownloadCallback() {
                     @Override
                     public void onStart() {
 
@@ -44,11 +44,13 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onProgress(float percent, long progress, long totalSize) {
+                        String name = Thread.currentThread().getName();
                         addCallbackTv.setText(String.format("%.2f%c",percent,'%'));
                     }
 
                     @Override
                     public boolean onFinish(File file) {
+                        addCallbackTv.setText("已完成");
                         return false;
                     }
 
@@ -68,11 +70,11 @@ public class MainActivity extends AppCompatActivity {
                 UpdateAppManager
                         .newBuilder()
                         .activity(MainActivity.this)
-                        .httpManager(new AppUpdateHttpManager())
-                        .notificationCustom(new INotification())
+                        .httpManager(new AppUpdateNetManager())
+                        .notificationCustom(new ArrowNotification())
                         .targetPath(path)
                         .build()
-                        .checkVersion(new CallbackUpdate());
+                        .checkVersion(new UpdateCallback());
             }
         });
     }

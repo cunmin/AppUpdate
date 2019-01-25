@@ -20,7 +20,7 @@ import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 
-import com.littleyellow.update.bean.UpdateAppBean;
+import com.littleyellow.update.bean.Version;
 
 import java.io.File;
 import java.util.List;
@@ -38,31 +38,32 @@ public class AppUpdateUtils {
     }
 
 
-    public static File getAppFile(UpdateAppBean updateAppBean) {
+    public static File getAppFile(String targetPath,Version updateAppBean) {
         String appName = getApkName(updateAppBean);
-        return new File(updateAppBean.getTargetPath()
-                .concat(File.separator + updateAppBean.getNewVersion())
+        return new File(targetPath
                 .concat(File.separator + appName));
     }
 
     @NonNull
-    public static String getApkName(UpdateAppBean updateAppBean) {
-        String apkUrl = updateAppBean.getApkFileUrl();
-        String appName = apkUrl.substring(apkUrl.lastIndexOf("/") + 1, apkUrl.length());
-        if (!appName.endsWith(".apk")) {
+    public static String getApkName(Version updateAppBean) {
+        String appName = null;
+        try {
+            appName = TextUtils.isEmpty(updateAppBean.getVersionName())?"temp.apk":updateAppBean.getVersionName()+"_temp.apk";
+        } catch (Exception e) {
+            e.printStackTrace();
             appName = "temp.apk";
         }
         return appName;
     }
 
-    public static boolean appIsDownloaded(UpdateAppBean updateAppBean) {
+    public static boolean isDownloadedMd5(String targetPath,Version updateAppBean) {
         //md5不为空
         //文件存在
         //md5只一样
-        File appFile = getAppFile(updateAppBean);
-        return !TextUtils.isEmpty(updateAppBean.getNewMd5())
+        File appFile = getAppFile(targetPath,updateAppBean);
+        return !TextUtils.isEmpty(updateAppBean.getMd5())
                 && appFile.exists()
-                && Md5Util.getFileMD5(appFile).equalsIgnoreCase(updateAppBean.getNewMd5());
+                && Md5Util.getFileMD5(appFile).equalsIgnoreCase(updateAppBean.getMd5());
     }
 
     public static boolean installApp(Context context, File appFile) {
@@ -105,13 +106,13 @@ public class AppUpdateUtils {
         return null;
     }
 
-    public static String getVersionName(Context context) {
-        PackageInfo packageInfo = getPackageInfo(context);
-        if (packageInfo != null) {
-            return packageInfo.versionName;
-        }
-        return "";
-    }
+//    public static String getVersionName(Context context) {
+//        PackageInfo packageInfo = getPackageInfo(context);
+//        if (packageInfo != null) {
+//            return packageInfo.versionName;
+//        }
+//        return "";
+//    }
 
     public static int getVersionCode(Context context) {
         PackageInfo packageInfo = getPackageInfo(context);

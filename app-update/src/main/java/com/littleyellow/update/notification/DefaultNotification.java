@@ -2,7 +2,6 @@ package com.littleyellow.update.notification;
 
 import android.app.PendingIntent;
 import android.content.Context;
-import android.os.Parcel;
 import android.support.v4.app.NotificationCompat;
 
 import com.littleyellow.update.R;
@@ -12,7 +11,7 @@ import com.littleyellow.update.utils.AppUpdateUtils;
  * Created by 小黄 on 2017/9/10 0010.
  */
 
-public class NotificationStyle implements NotificationCustom {
+public class DefaultNotification implements INotification {
 
     /**
      * 创建通知
@@ -55,30 +54,30 @@ public class NotificationStyle implements NotificationCustom {
 
     /*========================================================================================================*/
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-    }
-
-    public NotificationStyle() {
-    }
-
-    protected NotificationStyle(Parcel in) {
-    }
-
-    public static final Creator<NotificationStyle> CREATOR = new Creator<NotificationStyle>() {
-        @Override
-        public NotificationStyle createFromParcel(Parcel source) {
-            return new NotificationStyle(source);
-        }
-
-        @Override
-        public NotificationStyle[] newArray(int size) {
-            return new NotificationStyle[size];
-        }
-    };
+//    @Override
+//    public int describeContents() {
+//        return 0;
+//    }
+//
+//    @Override
+//    public void writeToParcel(Parcel dest, int flags) {
+//    }
+//
+//    public DefaultNotification() {
+//    }
+//
+//    protected DefaultNotification(Parcel in) {
+//    }
+//
+//    public static final Creator<DefaultNotification> CREATOR = new Creator<DefaultNotification>() {
+//        @Override
+//        public DefaultNotification createFromParcel(Parcel source) {
+//            return new DefaultNotification(source);
+//        }
+//
+//        @Override
+//        public DefaultNotification[] newArray(int size) {
+//            return new DefaultNotification[size];
+//        }
+//    };
 }

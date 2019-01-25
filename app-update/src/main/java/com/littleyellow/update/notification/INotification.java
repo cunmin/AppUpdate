@@ -2,16 +2,13 @@ package com.littleyellow.update.notification;
 
 import android.app.PendingIntent;
 import android.content.Context;
-import android.os.Parcelable;
 import android.support.v4.app.NotificationCompat;
-
-import java.io.Serializable;
 
 /**
  * Created by 小黄 on 2017/9/10 0010.
  */
 
-public interface NotificationCustom extends Parcelable,Serializable {
+public interface INotification{
 
     void setUp(Context context, NotificationCompat.Builder builder);
 

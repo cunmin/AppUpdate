@@ -1,10 +1,13 @@
 package com.littleyellow.update_demo;
 
+import android.os.Build;
 import android.support.annotation.NonNull;
 
-import com.littleyellow.update.HttpManager;
-import com.littleyellow.update_demo.bean.ResultBean;
+import com.google.gson.Gson;
+import com.littleyellow.update.NetManager;
+import com.littleyellow.update_demo.bean.UpdataBean;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.http.RequestParams;
 import org.xutils.x;
@@ -15,29 +18,36 @@ import java.io.File;
  * Created by Administrator on 2017/9/9 0009.
  */
 
-public class AppUpdateHttpManager implements HttpManager<ResultBean> {
+public class AppUpdateNetManager extends NetManager<UpdataBean> {
     @Override
-    public void getVersion(@NonNull final Callback<ResultBean> callBack) {
-        RequestParams params = new RequestParams("https://raw.githubusercontent.com/WVector/AppUpdateDemo/master/json/json.txt?appKey=ab55ce55Ac4bcP408cPb8c1Aaeac179c5f6f&version=0.1.0");
-        params.setConnectTimeout(500);
-        x.http().get(params, new org.xutils.common.Callback.CommonCallback<String>() {
+    public void getVersion(@NonNull final Callback<UpdataBean> callBack) {
+        RequestParams params = new RequestParams("http://yt.online.atianqi.com:8210/yuetingol/getupload");
+        JSONObject json = new JSONObject();
+        try {
+            json.put("clientid", "JHSG7328f");
+            json.put("appcode", "ytfm");
+            json.put("devicetype", "android");
+            json.put("distributor", "ytfm");
+            json.put("clientos", "android" + Build.VERSION.RELEASE);
+            json.put("servicecode", "ytfm");
+            json.put("clienttype", "PC");
+            json.put("clientver",BuildConfig.VERSION_NAME);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        params.setAsJsonContent(true);
+        params.setBodyContent(json.toString());
+        params.setConnectTimeout(2000);
+        x.http().post(params, new org.xutils.common.Callback.CommonCallback<String>() {
             @Override
             public void onSuccess(String json) {
-                //这里模拟网络框架返回实体ResultBean
-                ResultBean resultBean = new ResultBean();
                 try {
-                    JSONObject jsonObject = new JSONObject(json);
-                    resultBean.setUpdate(jsonObject.optString("update"));
-                    resultBean.setNew_version(jsonObject.optString("new_version"));
-                    resultBean.setApk_file_url(jsonObject.optString("apk_file_url"));
-                    resultBean.setTarget_size(jsonObject.optString("target_size"));
-                    resultBean.setUpdate_log(jsonObject.optString("update_log"));
-                    resultBean.setConstraint(jsonObject.optBoolean("constraint"));
-                    resultBean.setNew_md5(jsonObject.optString("new_md5"));
+                    UpdataBean resultBean = new Gson().fromJson(json, UpdataBean.class);
+                    callBack.onResponse(resultBean);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    callBack.onError(e.getMessage());
                 }
-                callBack.onResponse(resultBean);
             }
 
             @Override

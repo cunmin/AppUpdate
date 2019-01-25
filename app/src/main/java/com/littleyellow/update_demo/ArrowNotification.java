@@ -2,18 +2,17 @@ package com.littleyellow.update_demo;
 
 import android.app.PendingIntent;
 import android.content.Context;
-import android.os.Parcel;
 import android.support.v4.app.NotificationCompat;
 import android.view.View;
 import android.widget.RemoteViews;
 
-import com.littleyellow.update.notification.NotificationCustom;
+import com.littleyellow.update.notification.INotification;
 
 /**
  * Created by 小黄 on 2017/9/17 0017.
  */
 
-public class INotification implements NotificationCustom{
+public class ArrowNotification implements INotification {
 
     RemoteViews rv;
 
@@ -44,32 +43,32 @@ public class INotification implements NotificationCustom{
         rv.setViewVisibility(R.id.progress, View.GONE);
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelable(this.rv, flags);
-    }
-
-    public INotification() {
-    }
-
-    protected INotification(Parcel in) {
-        this.rv = in.readParcelable(RemoteViews.class.getClassLoader());
-    }
-
-    public static final Creator<INotification> CREATOR = new Creator<INotification>() {
-        @Override
-        public INotification createFromParcel(Parcel source) {
-            return new INotification(source);
-        }
-
-        @Override
-        public INotification[] newArray(int size) {
-            return new INotification[size];
-        }
-    };
+//    @Override
+//    public int describeContents() {
+//        return 0;
+//    }
+//
+//    @Override
+//    public void writeToParcel(Parcel dest, int flags) {
+//        dest.writeParcelable(this.rv, flags);
+//    }
+//
+//    public ArrowNotification() {
+//    }
+//
+//    protected ArrowNotification(Parcel in) {
+//        this.rv = in.readParcelable(RemoteViews.class.getClassLoader());
+//    }
+//
+//    public static final Creator<ArrowNotification> CREATOR = new Creator<ArrowNotification>() {
+//        @Override
+//        public ArrowNotification createFromParcel(Parcel source) {
+//            return new ArrowNotification(source);
+//        }
+//
+//        @Override
+//        public ArrowNotification[] newArray(int size) {
+//            return new ArrowNotification[size];
+//        }
+//    };
 }
