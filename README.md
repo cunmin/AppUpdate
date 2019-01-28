@@ -200,6 +200,14 @@ updateAppManager.download(version,downloadCallback,false);
 ```
 updateAppManager.silentDownload(version,downloadCallback);
 ```
+是否已经下载完成(可能之前静默下载)
+```
+updateAppManager.isDownloaded(version)
+```
+跳去安装
+```
+updateAppManager.installApp(apkFile)
+```
 显示升级包括下载的样式要自己实现，每个项目肯定也不一样的，无法封装，可参考上面的做法。
 
 - 定制（无特殊需求可跳过） 
