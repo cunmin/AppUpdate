@@ -14,7 +14,6 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
-import android.widget.Toast;
 
 import com.littleyellow.update.NetManager;
 import com.littleyellow.update.UpdateAppManager;
@@ -228,7 +227,6 @@ public class DownloadService extends Service {
 
         @Override
         public void onError(String error) {
-            Toast.makeText(DownloadService.this, "更新新版本出错，" + error, Toast.LENGTH_SHORT).show();
             //App前台运行
             if (mCallBack != null) {
                 mCallBack.onError(error);

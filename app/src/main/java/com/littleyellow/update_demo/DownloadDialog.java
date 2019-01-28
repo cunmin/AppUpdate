@@ -1,6 +1,7 @@
 package com.littleyellow.update_demo;
 
 import android.content.Context;
+import android.widget.Toast;
 
 import com.afollestad.materialdialogs.GravityEnum;
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -45,6 +46,7 @@ public class DownloadDialog implements DownloadCallback {
 
     @Override
     public void onError(String msg) {
+        Toast.makeText(context,"下载出错，请检查网络是否连接！",Toast.LENGTH_SHORT).show();
         downloadDialog.dismiss();
     }
 }

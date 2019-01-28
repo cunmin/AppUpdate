@@ -32,7 +32,7 @@ publish{
     userOrg = 'littleyellow'//bintray.com的用户名
     groupId = 'com.littleyellow'//一个唯一值，默认包名,生成的gradle依赖前缀
     artifactId = 'app-update'//远程仓库包名称
-    publishVersion = '1.0.3'//版本号
+    publishVersion = '1.0.4'//版本号
     desc = 'app 升级逻辑库'//描述，不重要
     website = 'https://github.com/cunmin/AppUpdate'//引用github主页
 }
