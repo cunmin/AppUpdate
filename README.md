@@ -1,8 +1,8 @@
 # app-update
-布局切换库，加载、空白、错误，可自定义布局类型。 
+该库只是简单将升级逻辑代码抽离出来。单一原则，只考虑升级逻辑，没有动态申请权限,所以在调用项目代码前要把读写存储权限申请好。 因为网络框架、升级接口，提示升级UI每个项目都不一样的，为了减小库的大小^_^,所以要开发者自己实现接口如demo。
 ## Setup
 
-要使用这个库 `minSdkVersion`  >= 14,compileSdkVersion>=26(通知栏兼容8.0系统)
+要使用这个库 `minSdkVersion`  >= 14.  (compileSdkVersion>=26通知栏兼容8.0系统)
 
 ```gradle
 allprojects {
@@ -24,13 +24,10 @@ public class UpdataBean implements Version {
     /**
      * resultcode :
      * resultdesc :
-     * romver :
      * apkver : 1020101000
      * apkminver : 1010609999
      * flag : 1
-     * reqip :
      * downloadurl : xxxxxxxxxxxxxx
-     * servertime : 0
      * description : 1、全新2.0UI界面，让你耳目一新；
      2、全新播放引擎，打开音频直播更快一步；
      3、新增视频功能，能看视频，更能看直播；
@@ -101,49 +98,126 @@ public class UpdataBean implements Version {
 ```
 hasUpdate、isForce方法根据自家后台的升级逻辑返回，也可重写下面说到的方法，getMd5方法是检验安装包md5，不用检验返回null/""即可
 
-网络实现
+网络实现，继承NetManager 主要返回版本信息，UpdataBean类是上面创建的类，类名任意`是实现Version接口的类`,自己请求版本信息后一定要调用callBack对象的onResponse、onError`其中的一种方法`，要做好异常处理，有异常框架也当做是无新版本处理。
+```
+public class XXX extends NetManager<UpdataBean> {
+    @Override
+    public void getVersion(@NonNull final Callback<UpdataBean> callBack) {
+        RequestParams params = new RequestParams("http://yt.online.atianqi.com:8210/yuetingol/getupload");
+        JSONObject json = new JSONObject();
+        try {
+            json.put("clientid", "JHSG7328f");
+            json.put("appcode", "ytfm");
+            json.put("devicetype", "android");
+            json.put("distributor", "ytfm");
+            json.put("clientos", "android" + Build.VERSION.RELEASE);
+            json.put("servicecode", "ytfm");
+            json.put("clienttype", "PC");
+            json.put("clientver",BuildConfig.VERSION_NAME);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        params.setAsJsonContent(true);
+        params.setBodyContent(json.toString());
+        params.setConnectTimeout(2000);
+        x.http().post(params, new org.xutils.common.Callback.CommonCallback<String>() {
+            @Override
+            public void onSuccess(String json) {
+                try {
+                    UpdataBean resultBean = new Gson().fromJson(json, UpdataBean.class);
+                    callBack.onResponse(resultBean);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    callBack.onError(e.getMessage());
+                }
+            }
+
+            @Override
+            public void onError(Throwable ex, boolean isOnCallback) {
+                callBack.onError(ex.getMessage());
+            }
+
+            @Override
+            public void onCancelled(CancelledException cex) {
+            }
+
+            @Override
+            public void onFinished() {
+            }
+
+        });
+    }
+}    
 ```
 
+- 2.升级检查
+```
+        UpdateAppManager.newBuilder()
+                        .activity(MainActivity.this)
+                        .httpManager(new XXX())
+                        .targetPath(path)
+                        .build()
+                        .checkVersion(new CheckCallback(){
+                        @Override
+                        public void hasUpdate(final Version updateApp, final UpdateAppManager updateAppManager,
+                                              boolean isForce,final File  apkFile) {
+                            final boolean hasDownload = updateAppManager.isDownloaded(updateApp);//null!=apkFile&&apkFile.exists();
+                            new MaterialDialog.Builder(updateAppManager.getActivity())
+                                    .title("有新版本啦~"+(hasDownload?"(已下载)":""))
+                                    .content(updateApp.getUpdateLog())
+                                    .positiveText(hasDownload?"安装":"更新")
+                                    .cancelable(!isForce)
+                                    .canceledOnTouchOutside(!isForce)
+                                    .negativeText(isForce?"退出":"暂不")
+                                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                                        @Override
+                                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                            if(hasDownload){
+                                                updateAppManager.installApp(apkFile);
+                                                return;
+                                            }
+                                            updateAppManager.download(updateApp,
+                                                    new DownloadDialog(updateAppManager.getActivity()),
+                                                    false);
+                                        }
+                                                })
+                                                .show();
+                                    }
+
+                                    @Override
+                                    public void noNewApp(UpdateAppManager updateAppManager) {
+                                        toast(updateAppManager.getActivity(),"没有版本更新！");
+                                    }
+                        
+                        });
 ```
 
-在Application的onCreate()方法里调用下面方法设置全局资源，也可在其他地方设置不过要注意内部类内存泄露问题
+点击下载调用
 ```
-LoadViewHelper.DefaultLayoutListener(new SettingCallBack());
+updateAppManager.download(version,downloadCallback,false);
+```
+静默下载可直接调用，其实也就调用上面方法
+```
+updateAppManager.silentDownload(version,downloadCallback);
+```
+是否已经下载完成(可能之前静默下载)
+```
+updateAppManager.isDownloaded(version)
+```
+手动跳去安装
+```
+updateAppManager.installApp(apkFile)
+```
+(一般用不到,有特殊需求可用)可添加全局的下载监听,包括静默下载  
+```
+UpdateAppManager.addDownloadCallback(String tag,DownloadCallback callback);
 ```
 
-- 2.viewGroup`有且只有一个子控件，即内容控件`
-```
-LoadViewHelper loadViewHelper = LoadViewHelper.newBuilder()
-//                .emptyLayoutRes(R.layout.empty_view)
-//                .errorLayoutRes(R.layout.error_view)
-//                .errorLayoutRes(R.layout.loading_view)
-//               .addCustomLayout(LOGIN_LAYOUT,R.layout.login_view)    //这里添加自定义布局，显示时要对应设置对的LOGIN_LAYOUT状态
-//               .stateChangeListener(new ShadeStateChangeListener())
-                 .build()
-                 .attach(viewGroup);
-```
+显示升级包括下载的样式要自己实现，每个项目肯定也不一样的，无法封装，可参考上面的做法。
 
-
-显示内容
-```
-loadViewHelper.showContent();
-```
-显示加载
-```
-loadViewHelper.showLoading();
-```
-显示空白
-```
-loadViewHelper.showEmpty();
-```
-显示错误
-```
-loadViewHelper.showError();
-```
-显示自定义布局
-```
-loadViewHelper.showCustom(int state);
-```
+- 定制（无特殊需求可跳过） 
+1.若要用项目下载框架下载apk安装包可重写NetManager里面的download方法，可参考NetManager的默认下载方法（HttpURLConnection下载）。
+2.若自定义下载通知栏样式，可新建类实现INotification接口，UpdateAppManager的构造器的notificationCustom()设置进去。实现INotification里面的方法可参孝默认通知栏样式DefaultNotification 或demo里的ArrowNotification样式。
 
 # License
 
