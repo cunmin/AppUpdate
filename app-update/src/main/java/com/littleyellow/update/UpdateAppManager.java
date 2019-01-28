@@ -8,12 +8,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import com.littleyellow.update.bean.UpdateAppBean;
 import com.littleyellow.update.bean.Version;
 import com.littleyellow.update.callback.CheckCallback;
 import com.littleyellow.update.callback.DownloadCallback;
-import com.littleyellow.update.notification.INotification;
 import com.littleyellow.update.notification.DefaultNotification;
+import com.littleyellow.update.notification.INotification;
 import com.littleyellow.update.service.DownloadService;
 import com.littleyellow.update.utils.AppUpdateUtils;
 import com.littleyellow.update.utils.Md5Util;
@@ -30,27 +29,13 @@ public class UpdateAppManager {
     private Activity activity;
     private NetManager netManager;
     private INotification notificationCustom;
-
-
-    private UpdateAppBean updateApp;
     private String targetPath;
-    private boolean isPost;
-    private boolean hideDialog;
-    private boolean showIgnoreVersion;
-    private boolean dismissNotificationProgress;
-    private boolean onlyWifi;
 
     private UpdateAppManager(Builder builder) {
         activity = builder.activity;
         netManager = builder.netManager;
         notificationCustom = builder.notificationCustom;
-        updateApp = builder.updateApp;
         targetPath = builder.targetPath;
-        isPost = builder.isPost;
-        hideDialog = builder.hideDialog;
-        showIgnoreVersion = builder.showIgnoreVersion;
-        dismissNotificationProgress = builder.dismissNotificationProgress;
-        onlyWifi = builder.onlyWifi;
     }
 
     public static Builder newBuilder() {
@@ -173,13 +158,7 @@ public class UpdateAppManager {
         private Activity activity;
         private NetManager netManager;
         private INotification notificationCustom;
-        private UpdateAppBean updateApp;
         private String targetPath;
-        private boolean isPost;
-        private boolean hideDialog;
-        private boolean showIgnoreVersion;
-        private boolean dismissNotificationProgress;
-        private boolean onlyWifi;
 
         private Builder() {
         }
@@ -199,38 +178,8 @@ public class UpdateAppManager {
             return this;
         }
 
-        public Builder updateApp(UpdateAppBean val) {
-            updateApp = val;
-            return this;
-        }
-
         public Builder targetPath(String val) {
             targetPath = val;
-            return this;
-        }
-
-        public Builder isPost(boolean val) {
-            isPost = val;
-            return this;
-        }
-
-        public Builder hideDialog(boolean val) {
-            hideDialog = val;
-            return this;
-        }
-
-        public Builder showIgnoreVersion(boolean val) {
-            showIgnoreVersion = val;
-            return this;
-        }
-
-        public Builder dismissNotificationProgress(boolean val) {
-            dismissNotificationProgress = val;
-            return this;
-        }
-
-        public Builder onlyWifi(boolean val) {
-            onlyWifi = val;
             return this;
         }
 
