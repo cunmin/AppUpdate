@@ -13,7 +13,7 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.littleyellow:app-update:1.0.3'
+    implementation 'com.littleyellow:app-update:1.0.4'
 }
 ```
 
