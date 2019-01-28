@@ -1,5 +1,5 @@
 # app-update
-布局切换库，加载、空白、错误，可自定义布局类型。 
+该库只是简单将升级逻辑代码抽离出来。单一原则，只考虑升级逻辑，没有动态申请权限,所以在调用项目代码前要把读写存储权限申请好。 因为网络框架、升级接口，提示升级UI每个项目都不一样的，为了减小库的大小^_^,所以要开发要自己实现接口如demo。
 ## Setup
 
 要使用这个库 `minSdkVersion`  >= 14.  (compileSdkVersion>=26通知栏兼容8.0系统)
@@ -24,13 +24,10 @@ public class UpdataBean implements Version {
     /**
      * resultcode :
      * resultdesc :
-     * romver :
      * apkver : 1020101000
      * apkminver : 1010609999
      * flag : 1
-     * reqip :
      * downloadurl : xxxxxxxxxxxxxx
-     * servertime : 0
      * description : 1、全新2.0UI界面，让你耳目一新；
      2、全新播放引擎，打开音频直播更快一步；
      3、新增视频功能，能看视频，更能看直播；
@@ -205,7 +202,7 @@ updateAppManager.silentDownload(version,downloadCallback);
 ```
 显示升级包括下载的样式要自己实现，每个项目肯定也不一样的，无法封装，可参考上面的做法。
 
-- 定制（无特殊要求可跳过） 
+- 定制（无特殊需求可跳过） 
 1.若要用项目下载框架下载apk安装包可重写NetManager里面的download方法，可参考NetManager的默认下载方法（HttpURLConnection下载）。
 2.若通知定义下载通知栏样式，可新建类实现INotification接口，UpdateAppManager的构造器的notificationCustom()设置进去。实现INotification里面的方法可参孝默认通知栏样式DefaultNotification。
 
