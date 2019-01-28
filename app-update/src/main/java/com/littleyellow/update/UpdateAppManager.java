@@ -23,12 +23,14 @@ import java.io.File;
  * 版本更新管理器
  */
 public class UpdateAppManager {
+
+    private INotification notificationCustom;
+
     /**
      * 必需参数
      */
     private Activity activity;
     private NetManager netManager;
-    private INotification notificationCustom;
     private String targetPath;
 
     private UpdateAppManager(Builder builder) {
