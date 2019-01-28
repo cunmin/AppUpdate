@@ -98,7 +98,7 @@ public class UpdataBean implements Version {
 ```
 hasUpdate、isForce方法根据自家后台的升级逻辑返回，也可重写下面说到的方法，getMd5方法是检验安装包md5，不用检验返回null/""即可
 
-网络实现，继承NetManager 主要返回版本信息，UpdataBean类是上面创建的类，类名任意`是实现Version接口的类`。
+网络实现，继承NetManager 主要返回版本信息，UpdataBean类是上面创建的类，类名任意`是实现Version接口的类`,自己请求版本信息后一定要调用callBack对象的onResponse、onError`其中的一种方法`，做好异常处理，有异常也当做是无下载版本处理。
 ```
 public class XXX extends NetManager<UpdataBean> {
     @Override
