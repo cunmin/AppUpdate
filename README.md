@@ -154,7 +154,7 @@ public class XXX extends NetManager<UpdataBean> {
 ```
         UpdateAppManager.newBuilder()
                         .activity(MainActivity.this)
-                        .httpManager(new XXX())
+                        .netManager(new XXX())
                         .targetPath(path)
                         .build()
                         .checkVersion(new CheckCallback(){
@@ -217,7 +217,7 @@ UpdateAppManager.addDownloadCallback(String tag,DownloadCallback callback);
 
 - 定制（无特殊需求可跳过） 
 1.若要用项目下载框架下载apk安装包可重写NetManager里面的download方法，可参考NetManager的默认下载方法（HttpURLConnection下载）。
-2.若自定义下载通知栏样式，可新建类实现INotification接口，UpdateAppManager的构造器的notificationCustom()设置进去。实现INotification里面的方法可参孝默认通知栏样式DefaultNotification 或demo里的ArrowNotification样式。
+2.若自定义下载通知栏样式，可新建类实现INotification接口，UpdateAppManager的构造器的notification()设置进去。实现INotification里面的方法可参孝默认通知栏样式DefaultNotification 或demo里的ArrowNotification样式。
 
 # License
 
