@@ -15,7 +15,7 @@
         android:id="@+id/check_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Check AppUpdate"
+        android:text="检查升级版本"
         android:padding="10dp"
         android:background="@color/colorAccent"/>
 
@@ -23,7 +23,7 @@
         android:id="@+id/add_callback_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Callback"
+        android:text="全局监听下载进度"
         android:layout_marginTop="10dp"
         android:padding="10dp"
         android:background="@color/colorAccent"/>
@@ -32,7 +32,7 @@
         android:id="@+id/custom_notification_check_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Check AppUpdate Custom Notification"
+        android:text="自定义下载通知栏样式"
         android:layout_marginTop="10dp"
         android:padding="10dp"
         android:background="@color/colorAccent"/>
