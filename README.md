@@ -204,15 +204,20 @@ updateAppManager.silentDownload(version,downloadCallback);
 ```
 updateAppManager.isDownloaded(version)
 ```
-跳去安装
+手动跳去安装
 ```
 updateAppManager.installApp(apkFile)
 ```
+(一般用不到,有特殊需求可用)可添加全局的下载监听,包括静默下载  
+```
+UpdateAppManager.addDownloadCallback(String tag,DownloadCallback callback);
+```
+
 显示升级包括下载的样式要自己实现，每个项目肯定也不一样的，无法封装，可参考上面的做法。
 
 - 定制（无特殊需求可跳过） 
 1.若要用项目下载框架下载apk安装包可重写NetManager里面的download方法，可参考NetManager的默认下载方法（HttpURLConnection下载）。
-2.若通知定义下载通知栏样式，可新建类实现INotification接口，UpdateAppManager的构造器的notificationCustom()设置进去。实现INotification里面的方法可参孝默认通知栏样式DefaultNotification。
+2.若通知定义下载通知栏样式，可新建类实现INotification接口，UpdateAppManager的构造器的notificationCustom()设置进去。实现INotification里面的方法可参孝默认通知栏样式DefaultNotification 或demo里的ArrowNotification样式。
 
 # License
 
