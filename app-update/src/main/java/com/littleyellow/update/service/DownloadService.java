@@ -156,7 +156,7 @@ public class DownloadService extends Service {
          */
         public void start(UpdateAppManager updateAppManager, Version updateApp, DownloadCallback callback, boolean isSilentDownload) {
             DownloadService.this.isSilentDownload = isSilentDownload;
-            mNotificationCustom = updateAppManager.getNotificationCustom();
+            mNotificationCustom = updateAppManager.getINotification();
             //下载
             startDownload(updateAppManager,updateApp, callback);
         }

@@ -24,7 +24,7 @@ import java.io.File;
  */
 public class UpdateAppManager {
 
-    private INotification notificationCustom;
+    private INotification notification;
 
     /**
      * 必需参数
@@ -36,7 +36,7 @@ public class UpdateAppManager {
     private UpdateAppManager(Builder builder) {
         activity = builder.activity;
         netManager = builder.netManager;
-        notificationCustom = builder.notificationCustom;
+        notification = builder.notification;
         targetPath = builder.targetPath;
     }
 
@@ -159,7 +159,7 @@ public class UpdateAppManager {
     public static final class Builder {
         private Activity activity;
         private NetManager netManager;
-        private INotification notificationCustom;
+        private INotification notification;
         private String targetPath;
 
         private Builder() {
@@ -170,13 +170,13 @@ public class UpdateAppManager {
             return this;
         }
 
-        public Builder httpManager(NetManager val) {
+        public Builder netManager(NetManager val) {
             netManager = val;
             return this;
         }
 
-        public Builder notificationCustom(INotification val) {
-            notificationCustom = val;
+        public Builder notification(INotification val) {
+            notification = val;
             return this;
         }
 
@@ -190,8 +190,8 @@ public class UpdateAppManager {
             if (activity == null || netManager == null|| TextUtils.isEmpty(targetPath)) {
                 throw new NullPointerException("必需参数不能为空");
             }
-            if(notificationCustom == null){
-                notificationCustom = new DefaultNotification();
+            if(notification == null){
+                notification = new DefaultNotification();
             }
             return new UpdateAppManager(this);
         }
@@ -208,8 +208,8 @@ public class UpdateAppManager {
         }
     }
 
-    public INotification getNotificationCustom() {
-        return notificationCustom;
+    public INotification getINotification() {
+        return notification;
     }
 
     public NetManager getNetManager() {

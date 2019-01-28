@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
                 UpdateAppManager
                         .newBuilder()
                         .activity(MainActivity.this)
-                        .httpManager(new AppUpdateNetManager())
+                        .netManager(new AppUpdateNetManager())
                         .targetPath(path)
                         .build()
                         .checkVersion(new UpdateCallback());
@@ -70,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
                 UpdateAppManager
                         .newBuilder()
                         .activity(MainActivity.this)
-                        .httpManager(new AppUpdateNetManager())
-                        .notificationCustom(new ArrowNotification())
+                        .netManager(new AppUpdateNetManager())
+                        .notification(new ArrowNotification())
                         .targetPath(path)
                         .build()
                         .checkVersion(new UpdateCallback());
